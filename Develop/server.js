@@ -1,28 +1,29 @@
-const Workout = require("./models/Workout")
 
-module.exports = function (app) {
+const express = require("express");
+const morgan = require("morgan");
+const mongoose = require("mongoose");
 
-    app.get("/api/workouts", function (req, res) {
-        Workout.find()
-            .then(data => {
-                res.json(data)
-            })
-            .catch(err => {
-                res.json(err)
-            })
-    });
 
-    app.put("/api/workouts/:id", ({ body, params }, res) => {
-        Workout.findByIdAndUpdate(
-            params.id,
-            { $push: { exercises: body } },
-            { new: true, runValidators: true }
-        )
-            .then(data => res.json(data))
-            .catch(err => {
-                console.log("err", err)
-                res.json(err)
-            })
-    });
-}
+const app = express();
+const PORT = process.env.PORT || 8000;
 
+app.use(morgan("dev"));
+
+
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(express.static('public'));
+
+
+var MONGODB_URI = process.env.MONGODB_URI || "mongodb://localhost/workout";
+mongoose.connect(MONGODB_URI, {
+    useNewUrlParser: true,
+    useFindAndModify: false
+})
+
+require("./routes/apiRoutes")(app);
+require("./routes/htmlRoutes")(app);
+
+app.listen(PORT, function(){
+    console.log(`App listening on Port ${PORT}!`);
+});
